@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회계 관리 프로그램 (Web Ver.)</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --primary-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --text-color: #333;
+            --border-color: #ddd;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1100px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+        }
+
+        /* 잔액 관리 카드 */
+        .balance-section {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .balance-info h2 { margin: 0; font-size: 0.95rem; font-weight: normal; opacity: 0.9; }
+        .balance-info .amount { font-size: 2.2rem; font-weight: bold; margin-top: 5px; }
+        
+        .balance-input-area { 
+            display: flex; flex-direction: column; align-items: flex-end; 
+            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;
+        }
+        .balance-input-row { display: flex; gap: 5px; }
+        .balance-input-area input { 
+            width: 140px; border: none; padding: 8px; border-radius: 4px; 
+            text-align: right; font-weight: bold; color: #333;
+        }
+        .btn-balance {
+            background-color: #fff; color: var(--primary-color); border: none;
+            padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+        }
+        .btn-balance:hover { background-color: #f0f9ff; }
+
+        /* Input Section */
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 140px 100px 1fr 1fr 1.5fr 40px 80px;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        @media (max-width: 900px) {
+            .input-group { grid-template-columns: 1fr; }
+        }
+
+        input, button, select {
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        #inType { font-weight: bold; }
+        .type-expense { color: var(--danger-color); }
+        .type-income { color: var(--primary-color); }
+
+        button { cursor: pointer; transition: background-color 0.2s; font-weight: bold; }
+        .btn-primary { background-color: var(--primary-color); color: white; border: none; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-danger { background-color: var(--danger-color); color: white; border: none; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-outline { background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); }
+        .btn-outline:hover { background-color: #eff6ff; }
+        
+        /* Table */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 950px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        th { background-color: #f8f9fa; font-weight: 600; cursor: pointer; user-select: none; }
+        th:hover { background-color: #e2e8f0; }
+        th span.sort-icon { margin-left: 5px; font-size: 0.8rem; color: #999; }
+        th.active-sort { color: var(--primary-color); }
+        .balance-col { font-weight: bold; color: #333; background-color: #f0f9ff; text-align: right; }
+        .amount-income { color: var(--primary-color); font-weight: bold; }
+        .amount-expense { color: var(--danger-color); }
+        .td-right { text-align: right; }
+        tr:hover { background-color: #f1f5f9; }
+        .actions { display: flex; gap: 5px; justify-content: center; }
+        .action-btn { padding: 5px 10px; font-size: 0.8rem; }
+        .img-btn { border: 1px solid #ccc; background: #fff; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; }
+        .img-btn:hover { background: #eee; }
+
+        /* Modal (Common) */
+        .modal {
+            display: none; position: fixed; z-index: 1000; padding-top: 50px;
+            left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .close {
+            position: absolute; top: 15px; right: 25px;
+            color: #fff; font-size: 35px; font-weight: bold; cursor: pointer; z-index: 1001;
+        }
+        
+        /* Image Viewer Modal Content */
+        .modal-image-container {
+            margin: auto; width: 80%; max-width: 800px;
+            display: flex; flex-direction: column; gap: 10px; align-items: center;
+            padding-bottom: 50px;
+        }
+        .modal-image-container img {
+            width: 100%; height: auto; border-radius: 8px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        /* Edit Form Modal */
+        .modal-form-content {
+            background-color: #fff; margin: auto; padding: 20px; border-radius: 8px;
+            width: 90%; max-width: 500px; position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .modal-form-content h2 { margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .edit-group { margin-bottom: 15px; }
+        .edit-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #555; }
+        .edit-group input, .edit-group select { width: 100%; box-sizing: border-box; }
+        
+        /* Edit Image List */
+        .img-edit-list {
+            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; margin-bottom: 10px;
+        }
+        .img-edit-item {
+            position: relative; width: 70px; height: 70px; border: 1px solid #ddd; border-radius: 4px;
+        }
+        .img-edit-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+        .img-del-btn {
+            position: absolute; top: -5px; right: -5px; background: red; color: white;
+            border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        /* Filter & File */
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; align-items: center; }
+        .file-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
+        .file-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+        .csv-help { font-size: 0.8rem; color: #666; margin-right: auto; }
+        
+        /* File Input Custom */
+        input[type="file"]::file-selector-button { display: none; }
+        .file-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
+        .file-label:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>회계 관리 프로그램</h1>
+
+    <div class="balance-section">
+        <div class="balance-info">
+            <h2>💳 현재 카드 잔액 (최종 잔액)</h2>
+            <div class="amount" id="displayTotalBalance">0원</div>
+        </div>
+        <div class="balance-input-area">
+            <small style="color: rgba(255,255,255,0.9); margin-bottom: 5px; font-size: 0.85rem;">
+                ▼ 현재 통장/카드의 <strong>실제 잔액</strong>을 입력하세요
+            </small>
+            <div class="balance-input-row">
+                <input type="number" id="inTargetBalance" placeholder="실제 잔액 입력">
+                <button class="btn-balance" onclick="adjustCurrentBalance()">잔액 맞춤</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">✏️ 거래 내역 입력</div>
+        <div class="input-group">
+            <input type="date" id="inDate" required title="거래 날짜">
+            <select id="inType" onchange="updateInputStyle()">
+                <option value="expense" class="type-expense" selected>지출 (-)</option>
+                <option value="income" class="type-income">수입 (+)</option>
+            </select>
+            <input type="number" id="inPrice" placeholder="금액 (Amount)" required>
+            <input type="text" id="inName" placeholder="내역 이름" required>
+            <input type="text" id="inExplan" placeholder="설명 (선택)">
+            
+            <label for="inImage" class="file-label" title="이미지 첨부 (여러장 가능)">
+                📷 <input type="file" id="inImage" accept="image/*" multiple style="display:none">
+            </label>
+
+            <button class="btn-primary" onclick="addEntry()">추가</button>
+        </div>
+        <small style="color: #666;">* 카메라 아이콘을 눌러 여러 장의 이미지를 동시에 첨부할 수 있습니다.</small>
+    </div>
+
+    <div class="section">
+        <div class="section-title">📋 내역 조회</div>
+        <div class="filter-bar">
+            <strong>검색:</strong>
+            <input type="text" id="filterName" placeholder="이름 검색..." onkeyup="renderTable()">
+            <span style="margin: 0 5px;">|</span>
+            <strong>기간:</strong>
+            <input type="date" id="filterStartDate" onchange="renderTable()">
+            <span>~</span>
+            <input type="date" id="filterEndDate" onchange="renderTable()">
+            <button class="btn-outline" onclick="resetFilters()">🔄 필터 초기화</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 12%;" onclick="sortTable('date')" id="th-date">날짜 <span class="sort-icon">▼</span></th>
+                        <th style="width: 8%;" onclick="sortTable('type')" id="th-type">구분 <span class="sort-icon">▼</span></th>
+                        <th style="width: 15%;" onclick="sortTable('name')" id="th-name">이름 <span class="sort-icon">▼</span></th>
+                        <th style="width: 20%;">설명</th>
+                        <th style="width: 8%; text-align:center;">사진</th>
+                        <th style="width: 12%; text-align:right;" onclick="sortTable('price')" id="th-price">금액 <span class="sort-icon">▼</span></th>
+                        <th style="width: 15%;" class="balance-col">카드 잔액</th>
+                        <th style="width: 10%; text-align:center;">관리</th>
+                    </tr>
+                </thead>
+                <tbody id="dataTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="file-controls">
+        <div class="file-buttons">
+            <span class="csv-help">※ CSV 파일에 이미지 데이터도 함께 저장됩니다. (다중 이미지 포함)</span>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(this)">
+            <select id="encodingSelect" style="padding: 8px;">
+                <option value="UTF-8">UTF-8 (기본)</option>
+                <option value="EUC-KR">EUC-KR (엑셀/한글)</option>
+            </select>
+            <button class="btn-outline" onclick="document.getElementById('csvFileInput').click()">📂 CSV 불러오기</button>
+            <button class="btn-primary" onclick="exportCSV()">💾 CSV 저장하기</button>
+        </div>
+    </div>
+</div>
+
+<div id="imageModal" class="modal">
+    <span class="close" onclick="closeModal('imageModal')">&times;</span>
+    <div id="modalGallery" class="modal-image-container">
+        </div>
+</div>
+
+<div id="editModal" class="modal">
+    <div class="modal-form-content">
+        <h2>내역 수정</h2>
+        <input type="hidden" id="editId">
+        
+        <div class="edit-group">
+            <label>날짜</label>
+            <input type="date" id="editDate">
+        </div>
+        <div class="edit-group">
+            <label>구분</label>
+            <select id="editType">
+                <option value="expense">지출 (-)</option>
+                <option value="income">수입 (+)</option>
+            </select>
+        </div>
+        <div class="edit-group">
+            <label>금액</label>
+            <input type="number" id="editPrice">
+        </div>
+        <div class="edit-group">
+            <label>이름</label>
+            <input type="text" id="editName">
+        </div>
+        <div class="edit-group">
+            <label>설명</label>
+            <input type="text" id="editExplan">
+        </div>
+        <div class="edit-group">
+            <label>이미지 관리 (추가하려면 파일 선택)</label>
+            <input type="file" id="editImageInput" accept="image/*" multiple>
+            
+            <div id="editImageList" class="img-edit-list"></div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-outline" onclick="closeModal('editModal')">취소</button>
+            <button class="btn-primary" onclick="saveEdit()">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Data Structure ---
+    // Item: { id, year, month, day, price, name, explan, type, images: [base64_1, base64_2, ...] }
+    // 기존 단일 image 필드는 images 배열로 마이그레이션하여 사용
+    let accountingData = [];
+    let initialBalance = 0; 
+    let currentSort = { column: 'date', order: 'asc' }; 
+    
+    // 수정 시 임시로 이미지 상태를 저장할 배열
+    let currentEditImages = [];
+
+    window.onload = function() {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        document.getElementById('inDate').value = `${yyyy}-${mm}-${dd}`;
+
+        loadFromLocalStorage();
+        updateInputStyle();
+        renderTable();
+    };
+
+    function updateInputStyle() {
+        const typeSelect = document.getElementById('inType');
+        typeSelect.style.color = typeSelect.value === 'income' ? 'var(--primary-color)' : 'var(--danger-color)';
+    }
+
+    // 이미지 리사이징 & 압축
+    function resizeAndCompressImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const MAX_WIDTH = 500, MAX_HEIGHT = 500;
+                    let width = img.width, height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width; canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+            };
+        });
+    }
+
+    function adjustCurrentBalance() {
+        const val = document.getElementById('inTargetBalance').value;
+        if (val === '') return;
+        const targetBalance = parseInt(val);
+        let netChange = 0;
+        accountingData.forEach(item => {
+            if (item.type === 'income') netChange += item.price;
+            else netChange -= item.price;
+        });
+        initialBalance = targetBalance - netChange;
+        document.getElementById('inTargetBalance').value = ''; 
+        saveToLocalStorage();
+        renderTable(); 
+        alert(`현재 잔액을 ${targetBalance.toLocaleString()}원으로 맞췄습니다.`);
+    }
+
+    // [수정됨] 입력 기능 (다중 이미지 처리)
+    async function addEntry() {
+        const dateStr = document.getElementById('inDate').value;
+        const type = document.getElementById('inType').value;
+        const price = document.getElementById('inPrice').value;
+        const name = document.getElementById('inName').value;
+        const explan = document.getElementById('inExplan').value;
+        const imageInput = document.getElementById('inImage');
+
+        if (!price || !name || !dateStr) {
+            alert("날짜, 금액, 이름은 필수 입력입니다.");
+            return;
+        }
+
+        // 여러 이미지 처리
+        let imageArray = [];
+        if (imageInput.files && imageInput.files.length > 0) {
+            for (let i = 0; i < imageInput.files.length; i++) {
+                const compressed = await resizeAndCompressImage(imageInput.files[i]);
+                imageArray.push(compressed);
+            }
+        }
+
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const newElement = {
+            id: Date.now(),
+            type, price: parseInt(price), name, explan, year: y, month: m, day: d, 
+            images: imageArray // 배열로 저장
+        };
+
+        accountingData.push(newElement);
+        saveToLocalStorage();
+        renderTable();
+        
+        document.getElementById('inPrice').value = '';
+        document.getElementById('inName').value = '';
+        document.getElementById('inExplan').value = '';
+        document.getElementById('inImage').value = ''; 
+        document.getElementById('inPrice').focus();
+    }
+
+    function sortTable(column) {
+        if (currentSort.column === column) {
+            currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort.column = column;
+            currentSort.order = 'asc';
+        }
+        renderTable();
+    }
+
+    function updateSortUI() {
+        ['date', 'type', 'price', 'name'].forEach(col => {
+            const th = document.getElementById(`th-${col}`);
+            if(th) {
+                const icon = th.querySelector('.sort-icon');
+                th.classList.remove('active-sort');
+                icon.innerText = '▼';
+                if (currentSort.column === col) {
+                    th.classList.add('active-sort');
+                    icon.innerText = currentSort.order === 'asc' ? '▲' : '▼';
+                }
+            }
+        });
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('dataTableBody');
+        tbody.innerHTML = '';
+
+        let sortedForCalc = [...accountingData].sort((a, b) => {
+            const dateA = a.year * 10000 + a.month * 100 + a.day;
+            const dateB = b.year * 10000 + b.month * 100 + b.day;
+            if (dateA !== dateB) return dateA - dateB;
+            return a.id - b.id;
+        });
+
+        let tempBalance = initialBalance; 
+        sortedForCalc.forEach(item => {
+            if (item.type === 'income') tempBalance += item.price;
+            else tempBalance -= item.price;
+            item._calculatedBalance = tempBalance;
+        });
+
+        document.getElementById('displayTotalBalance').innerText = tempBalance.toLocaleString() + "원";
+
+        const filterName = document.getElementById('filterName').value.toLowerCase();
+        const startDateStr = document.getElementById('filterStartDate').value;
+        const endDateStr = document.getElementById('filterEndDate').value;
+
+        let displayData = sortedForCalc.filter(item => {
+            if (filterName && !item.name.toLowerCase().includes(filterName)) return false;
+            if (startDateStr || endDateStr) {
+                const itemDateVal = item.year * 10000 + item.month * 100 + item.day;
+                const startVal = startDateStr ? parseInt(startDateStr.replace(/-/g, '')) : 0;
+                const endVal = endDateStr ? parseInt(endDateStr.replace(/-/g, '')) : 99999999;
+                if (itemDateVal < startVal || itemDateVal > endVal) return false;
+            }
+            return true;
+        });
+
+        displayData.sort((a, b) => {
+            let valA, valB;
+            if (currentSort.column === 'date') {
+                valA = a.year * 10000 + a.month * 100 + a.day; valB = b.year * 10000 + b.month * 100 + b.day;
+            } else if (currentSort.column === 'price') {
+                valA = a.price; valB = b.price;
+            } else if (currentSort.column === 'name') {
+                valA = a.name.toLowerCase(); valB = b.name.toLowerCase();
+            } else if (currentSort.column === 'type') {
+                valA = a.type || 'expense'; valB = b.type || 'expense';
+            }
+            if (valA < valB) return currentSort.order === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSort.order === 'asc' ? 1 : -1;
+            return 0;
+        });
+
+        updateSortUI();
+
+        displayData.forEach(item => {
+            const tr = document.createElement('tr');
+            const dateStr = `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`;
+            const isIncome = item.type === 'income';
+            const typeText = isIncome ? '수입' : '지출';
+            const priceClass = isIncome ? 'amount-income' : 'amount-expense';
+            const pricePrefix = isIncome ? '+' : '-';
+
+            // 이미지 버튼 로직 (배열 확인)
+            let imgHtml = '-';
+            let imgCount = 0;
+            if (item.images && Array.isArray(item.images)) {
+                imgCount = item.images.length;
+            } else if (item.image) { // 구버전 데이터 호환
+                imgCount = 1;
+            }
+
+            if (imgCount > 0) {
+                imgHtml = `<button class="img-btn" onclick="showImage('${item.id}')">📷보기(${imgCount})</button>`;
+            }
+
+            tr.innerHTML = `
+                <td>${dateStr}</td>
+                <td style="color: ${isIncome ? 'blue' : 'red'}; font-size: 0.9rem;">${typeText}</td>
+                <td>${item.name}</td>
+                <td>${item.explan}</td>
+                <td style="text-align:center;">${imgHtml}</td>
+                <td class="${priceClass} td-right">${pricePrefix}${item.price.toLocaleString()}원</td>
+                <td class="balance-col">${item._calculatedBalance.toLocaleString()}원</td>
+                <td class="actions">
+                    <button class="action-btn btn-outline" onclick="openEditModal(${item.id})">수정</button>
+                    <button class="action-btn btn-danger" onclick="deleteEntry(${item.id})">삭제</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        if (displayData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 20px;">데이터가 없습니다.</td></tr>';
+        }
+    }
+
+    // --- Modal Functions (View) ---
+    function showImage(id) {
+        const item = accountingData.find(d => d.id == id);
+        if (!item) return;
+
+        // 이미지 배열 확보
+        let imgs = [];
+        if (item.images && Array.isArray(item.images)) {
+            imgs = item.images;
+        } else if (item.image) {
+            imgs = [item.image];
+        }
+
+        if (imgs.length > 0) {
+            const modal = document.getElementById("imageModal");
+            const gallery = document.getElementById("modalGallery");
+            gallery.innerHTML = ''; // 초기화
+
+            imgs.forEach(src => {
+                const imgTag = document.createElement('img');
+                imgTag.src = src;
+                gallery.appendChild(imgTag);
+            });
+
+            modal.style.display = "block";
+        }
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = "none";
+    }
+    
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = "none";
+        }
+    }
+
+    // --- Edit Feature (Modal) with Multi-Image Support ---
+    
+    function openEditModal(id) {
+        const item = accountingData.find(d => d.id == id);
+        if (!item) return;
+
+        document.getElementById('editId').value = item.id;
+        document.getElementById('editDate').value = `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`;
+        document.getElementById('editType').value = item.type || 'expense';
+        document.getElementById('editPrice').value = item.price;
+        document.getElementById('editName').value = item.name;
+        document.getElementById('editExplan').value = item.explan;
+        
+        document.getElementById('editImageInput').value = ''; 
+
+        // 현재 이미지 배열 복사해서 임시 저장
+        if (item.images && Array.isArray(item.images)) {
+            currentEditImages = [...item.images];
+        } else if (item.image) {
+            currentEditImages = [item.image];
+        } else {
+            currentEditImages = [];
+        }
+
+        renderEditImages(); // 이미지 목록 그리기
+        document.getElementById('editModal').style.display = 'block';
+    }
+
+    // 수정 팝업 내 이미지 목록 렌더링
+    function renderEditImages() {
+        const container = document.getElementById('editImageList');
+        container.innerHTML = '';
+
+        currentEditImages.forEach((src, index) => {
+            const div = document.createElement('div');
+            div.className = 'img-edit-item';
+            
+            const img = document.createElement('img');
+            img.src = src;
+            
+            const btn = document.createElement('button');
+            btn.className = 'img-del-btn';
+            btn.innerHTML = '&times;';
+            btn.onclick = function() { removeImageFromEdit(index); }; // 삭제 기능
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            container.appendChild(div);
+        });
+    }
+
+    function removeImageFromEdit(index) {
+        currentEditImages.splice(index, 1);
+        renderEditImages();
+    }
+
+    async function saveEdit() {
+        const id = parseInt(document.getElementById('editId').value);
+        const item = accountingData.find(d => d.id === id);
+        if (!item) return;
+
+        const dateStr = document.getElementById('editDate').value;
+        const [y, m, d] = dateStr.split('-').map(Number);
+
+        item.year = y;
+        item.month = m;
+        item.day = d;
+        item.type = document.getElementById('editType').value;
+        item.price = parseInt(document.getElementById('editPrice').value) || 0;
+        item.name = document.getElementById('editName').value;
+        item.explan = document.getElementById('editExplan').value;
+
+        // 1. 기존 리스트에서 삭제된 것은 반영됨 (currentEditImages)
+        // 2. 새로 추가된 파일 처리
+        const fileInput = document.getElementById('editImageInput');
+        if (fileInput.files.length > 0) {
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const compressed = await resizeAndCompressImage(fileInput.files[i]);
+                currentEditImages.push(compressed);
+            }
+        }
+
+        item.images = currentEditImages; // 최종 반영
+        // 구버전 호환성을 위해 image 필드는 비우거나 첫번째로 설정 (여기선 그냥 둠)
+        delete item.image; 
+
+        saveToLocalStorage();
+        renderTable();
+        closeModal('editModal');
+    }
+
+    function deleteEntry(id) {
+        if (!confirm("삭제하시겠습니까?")) return;
+        accountingData = accountingData.filter(item => item.id !== id);
+        saveToLocalStorage();
+        renderTable();
+    }
+
+    // --- Utilities ---
+    function resetFilters() {
+        document.getElementById('filterName').value = '';
+        document.getElementById('filterStartDate').value = '';
+        document.getElementById('filterEndDate').value = '';
+        currentSort = { column: 'date', order: 'asc' };
+        renderTable();
+    }
+
+    function saveToLocalStorage() {
+        localStorage.setItem('accountingData', JSON.stringify(accountingData));
+        localStorage.setItem('initialBalance', initialBalance.toString());
+    }
+
+    function loadFromLocalStorage() {
+        const data = localStorage.getItem('accountingData');
+        const bal = localStorage.getItem('initialBalance');
+        if (data) {
+            accountingData = JSON.parse(data);
+            accountingData.forEach(item => {
+                if (!item.type) item.type = 'expense';
+                // 데이터 마이그레이션: image(string) -> images(array)
+                if (item.image && (!item.images || item.images.length === 0)) {
+                    item.images = [item.image];
+                }
+            });
+        }
+        if (bal) {
+            initialBalance = parseInt(bal);
+        }
+    }
+
+    // --- CSV Export (다중 이미지 포함) ---
+    function exportCSV() {
+        let sorted = [...accountingData].sort((a, b) => {
+            const dateA = a.year * 10000 + a.month * 100 + a.day;
+            const dateB = b.year * 10000 + b.month * 100 + b.day;
+            if (dateA !== dateB) return dateA - dateB;
+            return a.id - b.id;
+        });
+
+        // 이미지는 ||| 로 구분하여 하나의 셀에 저장
+        let csvContent = "\uFEFFtype,price,name,explan,year,month,day,card_balance,images\n";
+        let tempBal = initialBalance;
+
+        sorted.forEach(row => {
+            if (row.type === 'income') tempBal += row.price;
+            else tempBal -= row.price;
+
+            const escapeCSV = (str) => {
+                if (!str) return '""';
+                return '"' + String(str).replace(/"/g, '""') + '"';
+            };
+
+            // 이미지 배열을 구분자로 합침
+            let imgString = "";
+            if (row.images && row.images.length > 0) {
+                imgString = row.images.join('|||');
+            } else if (row.image) {
+                imgString = row.image;
+            }
+
+            const rowString = [
+                row.type || 'expense',
+                row.price,
+                escapeCSV(row.name),
+                escapeCSV(row.explan),
+                row.year,
+                row.month,
+                row.day,
+                tempBal,
+                escapeCSV(imgString) 
+            ].join(",");
+            csvContent += rowString + "\n";
+        });
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "data.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- CSV Import (다중 이미지 포함) ---
+    function handleFileSelect(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const encoding = document.getElementById('encodingSelect').value;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const rows = text.split(/\r?\n/);
+            let successCount = 0;
+            
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row.trim()) continue;
+                const matches = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+                let cols = [];
+                if (matches) {
+                    cols = matches.map(m => m.replace(/^"|"$/g, '').replace(/""/g, '"'));
+                } else {
+                    cols = row.split(',').map(s => s.trim());
+                }
+                
+                if (cols.length < 6) continue;
+                
+                let type, price, name, explan, year, month, day, images = [];
+
+                if (cols.length >= 9) { 
+                    type = cols[0]; price = parseInt(cols[1]); name = cols[2]; explan = cols[3];
+                    year = parseInt(cols[4]); month = parseInt(cols[5]); day = parseInt(cols[6]);
+                    // cols[7] balance
+                    let imgRaw = cols[8];
+                    if (imgRaw) {
+                        // ||| 구분자로 분리
+                        images = imgRaw.split('|||').filter(s => s.length > 20);
+                    }
+                } else if (cols.length >= 8) { 
+                    // 구버전 호환 (이미지 1개인 경우도 있을 수 있음)
+                    type = cols[0]; price = parseInt(cols[1]); name = cols[2]; explan = cols[3];
+                    year = parseInt(cols[4]); month = parseInt(cols[5]); day = parseInt(cols[6]);
+                } else { 
+                    type = 'expense'; price = parseInt(cols[0]); name = cols[1]; explan = cols[2];
+                    year = parseInt(cols[3]); month = parseInt(cols[4]); day = parseInt(cols[5]);
+                }
+
+                if (!isNaN(price) && !isNaN(year)) {
+                    accountingData.push({
+                        id: Date.now() + i,
+                        type: type || 'expense', price, name, explan, year, month, day,
+                        images: images
+                    });
+                    successCount++;
+                }
+            }
+            saveToLocalStorage();
+            renderTable();
+            alert(`${successCount}개의 내역을 불러왔습니다!\n잔액은 현재 설정된 기준에 맞춰 재계산됩니다.`);
+            input.value = '';
+        };
+        reader.readAsText(file, encoding);
+    }
+</script>
+
+</body>
+</html>
