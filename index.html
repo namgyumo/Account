@@ -3,223 +3,355 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>회계 관리 프로그램 (Web Ver.)</title>
     <style>
+        /* --- [디자인 리셋 및 변수 설정] --- */
         :root {
-            --bg-color: #f4f4f9;
+            --bg-color: #f0f2f5;
             --card-bg: #ffffff;
-            --primary-color: #3b82f6;
+            --primary-color: #4f46e5; /* 세련된 인디고 블루 */
+            --primary-hover: #4338ca;
             --danger-color: #ef4444;
             --success-color: #10b981;
-            --text-color: #333;
-            --border-color: #ddd;
+            --text-color: #1f2937;
+            --text-light: #6b7280;
+            --border-color: #e5e7eb;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
+        * { box-sizing: border-box; }
+
         body {
-            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
+            line-height: 1.5;
         }
 
+        /* --- [레이아웃 컨테이너] --- */
         .container {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px; /* 넓은 화면 활용 */
             background-color: var(--card-bg);
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            padding: 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 40px;
         }
 
         h1 {
             text-align: center;
-            color: var(--primary-color);
-            border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 10px;
+            color: var(--text-color);
+            font-size: 1.8rem;
+            margin-bottom: 30px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
-        /* 잔액 관리 카드 */
+        /* --- [카드 섹션 (잔액 관리)] --- */
         .balance-section {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
             color: white;
-            padding: 20px;
-            border-radius: 8px;
+            padding: 25px;
+            border-radius: var(--radius-md);
             margin-bottom: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);
-            flex-wrap: wrap;
-            gap: 15px;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            flex-wrap: wrap; /* 반응형 줄바꿈 */
+            gap: 20px;
         }
-        .balance-info h2 { margin: 0; font-size: 0.95rem; font-weight: normal; opacity: 0.9; }
-        .balance-info .amount { font-size: 2.2rem; font-weight: bold; margin-top: 5px; }
+
+        .balance-info { flex: 1; min-width: 200px; }
+        .balance-info h2 { margin: 0; font-size: 0.95rem; font-weight: 500; opacity: 0.9; margin-bottom: 5px; }
+        .balance-info .amount { font-size: 2.5rem; font-weight: 800; line-height: 1.2; }
+
+        .balance-input-area {
+            display: flex; flex-direction: column; align-items: flex-end;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 15px; border-radius: var(--radius-sm);
+            backdrop-filter: blur(5px);
+        }
+        .balance-input-area small { color: rgba(255,255,255,0.9); margin-bottom: 8px; font-size: 0.85rem; display: block; text-align: right; }
+        .balance-input-row { display: flex; gap: 8px; width: 100%; }
         
-        .balance-input-area { 
-            display: flex; flex-direction: column; align-items: flex-end; 
-            background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px;
+        .balance-input-area input {
+            width: 100%; max-width: 150px; border: none; padding: 10px; 
+            border-radius: var(--radius-sm); text-align: right; font-weight: bold; color: #333;
+            font-size: 1rem;
         }
-        .balance-input-row { display: flex; gap: 5px; }
-        .balance-input-area input { 
-            width: 140px; border: none; padding: 8px; border-radius: 4px; 
-            text-align: right; font-weight: bold; color: #333;
-        }
+        
         .btn-balance {
             background-color: #fff; color: var(--primary-color); border: none;
-            padding: 8px 12px; border-radius: 4px; cursor: pointer; font-weight: bold;
+            padding: 10px 16px; border-radius: var(--radius-sm); cursor: pointer; 
+            font-weight: bold; white-space: nowrap; transition: transform 0.1s;
         }
-        .btn-balance:hover { background-color: #f0f9ff; }
+        .btn-balance:active { transform: scale(0.96); }
 
-        /* Input Section */
+        /* --- [섹션 공통 스타일] --- */
         .section {
+            background: #fff;
             margin-bottom: 30px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 0; /* 내부 패딩 제거 (깔끔하게) */
         }
 
         .section-title {
-            font-size: 1.2rem;
-            font-weight: bold;
+            font-size: 1.3rem;
+            font-weight: 700;
             margin-bottom: 15px;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: var(--text-color);
+            display: flex; align-items: center; gap: 8px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--bg-color);
         }
 
+        /* --- [입력 폼 (반응형 Grid)] --- */
         .input-group {
             display: grid;
-            grid-template-columns: 140px 100px 1fr 1fr 1.5fr 40px 80px;
-            gap: 10px;
+            /* PC: 한 줄에 배치 (비율 조정) */
+            grid-template-columns: 150px 110px 1fr 1fr 2fr auto 100px;
+            gap: 12px;
             margin-bottom: 10px;
-            align-items: center;
-        }
-        
-        @media (max-width: 900px) {
-            .input-group { grid-template-columns: 1fr; }
+            align-items: stretch;
         }
 
-        input, button, select {
-            padding: 10px;
+        /* 공통 Input/Select/Button 스타일 */
+        input, select {
+            padding: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: var(--radius-sm);
             font-size: 1rem;
             font-family: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
+        /* 버튼 스타일 */
+        button, .file-label {
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            display: inline-flex; justify-content: center; align-items: center;
+        }
+
+        .btn-primary { background-color: var(--primary-color); color: white; border: none; padding: 12px; }
+        .btn-primary:hover { background-color: var(--primary-hover); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        
+        .btn-danger { background-color: white; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 6px 12px; font-size: 0.85rem;}
+        .btn-danger:hover { background-color: #fef2f2; }
+        
+        .btn-outline { background-color: white; border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 15px; }
+        .btn-outline:hover { background-color: #f9fafb; border-color: #d1d5db; }
+
+        /* 파일 첨부 버튼 꾸미기 */
+        .file-label {
+            background-color: #f3f4f6; color: #555; border: 1px solid var(--border-color);
+            padding: 0; width: 100%; height: 100%; min-height: 45px;
+            font-size: 1.5rem;
+        }
+        .file-label:hover { background-color: #e5e7eb; }
+        input[type="file"] { display: none; }
+
+        /* 수입/지출 폰트 색상 */
         #inType { font-weight: bold; }
         .type-expense { color: var(--danger-color); }
         .type-income { color: var(--primary-color); }
 
-        button { cursor: pointer; transition: background-color 0.2s; font-weight: bold; }
-        .btn-primary { background-color: var(--primary-color); color: white; border: none; }
-        .btn-primary:hover { background-color: #2563eb; }
-        .btn-danger { background-color: var(--danger-color); color: white; border: none; }
-        .btn-danger:hover { background-color: #dc2626; }
-        .btn-outline { background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); }
-        .btn-outline:hover { background-color: #eff6ff; }
+        /* 도움말 텍스트 */
+        small { display: block; color: var(--text-light); margin-top: 5px; font-size: 0.9rem; }
+
+        /* --- [테이블 (내역 조회)] --- */
+        .table-container {
+            overflow-x: auto; /* 가로 스크롤 허용 */
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px; /* 최소 너비 확보 */
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+            white-space: nowrap; /* 줄바꿈 방지 */
+        }
+
+        th {
+            background-color: #f9fafb;
+            color: var(--text-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            cursor: pointer;
+            user-select: none;
+        }
+        th:hover { background-color: #f3f4f6; color: var(--primary-color); }
         
-        /* Table */
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; min-width: 950px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
-        th { background-color: #f8f9fa; font-weight: 600; cursor: pointer; user-select: none; }
-        th:hover { background-color: #e2e8f0; }
-        th span.sort-icon { margin-left: 5px; font-size: 0.8rem; color: #999; }
-        th.active-sort { color: var(--primary-color); }
-        .balance-col { font-weight: bold; color: #333; background-color: #f0f9ff; text-align: right; }
-        .amount-income { color: var(--primary-color); font-weight: bold; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background-color: #f9fafb; }
+
+        .balance-col { font-weight: 700; color: var(--text-color); background-color: #f8fafc; text-align: right; }
+        .amount-income { color: var(--primary-color); font-weight: 700; }
         .amount-expense { color: var(--danger-color); }
         .td-right { text-align: right; }
-        tr:hover { background-color: #f1f5f9; }
-        .actions { display: flex; gap: 5px; justify-content: center; }
-        .action-btn { padding: 5px 10px; font-size: 0.8rem; }
-        .img-btn { border: 1px solid #ccc; background: #fff; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; }
-        .img-btn:hover { background: #eee; }
 
-        /* Modal (Common) */
-        .modal {
-            display: none; position: fixed; z-index: 1000; padding-top: 50px;
-            left: 0; top: 0; width: 100%; height: 100%; overflow: auto;
-            background-color: rgba(0,0,0,0.7);
+        .img-btn { 
+            font-size: 0.8rem; padding: 4px 8px; border: 1px solid #d1d5db; 
+            border-radius: 4px; background: white; color: #555; 
         }
-        .close {
-            position: absolute; top: 15px; right: 25px;
-            color: #fff; font-size: 35px; font-weight: bold; cursor: pointer; z-index: 1001;
+
+        /* --- [필터 및 파일 컨트롤] --- */
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            background-color: #f8f9fa; padding: 15px;
+            border-radius: var(--radius-sm); margin-bottom: 20px;
+            align-items: center; border: 1px solid var(--border-color);
+        }
+        .filter-bar input { width: auto; flex: 1; min-width: 120px; }
+
+        .file-controls {
+            margin-top: 30px; padding-top: 20px;
+            border-top: 1px dashed var(--border-color);
+            display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+        }
+        .file-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+        /* --- [모달 (팝업)] --- */
+        .modal {
+            display: none; position: fixed; z-index: 2000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(3px);
+            overflow-y: auto; /* 모달 전체 스크롤 */
         }
         
-        /* Image Viewer Modal Content */
+        .modal-content, .modal-form-content {
+            background-color: #fff; margin: 5% auto; padding: 25px;
+            border-radius: var(--radius-md); width: 95%; max-width: 500px;
+            position: relative; animation: slideDown 0.3s ease;
+        }
+        
         .modal-image-container {
-            margin: auto; width: 80%; max-width: 800px;
-            display: flex; flex-direction: column; gap: 10px; align-items: center;
-            padding-bottom: 50px;
+            width: 95%; max-width: 800px; margin: 50px auto;
+            display: flex; flex-direction: column; gap: 15px;
         }
         .modal-image-container img {
-            width: 100%; height: auto; border-radius: 8px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 100%; border-radius: var(--radius-sm);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        /* Edit Form Modal */
-        .modal-form-content {
-            background-color: #fff; margin: auto; padding: 20px; border-radius: 8px;
-            width: 90%; max-width: 500px; position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        .close {
+            position: fixed; top: 20px; right: 30px;
+            color: white; font-size: 40px; font-weight: bold; 
+            cursor: pointer; z-index: 2001; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
-        .modal-form-content h2 { margin-top: 0; color: #333; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+
+        /* 수정 폼 스타일 */
         .edit-group { margin-bottom: 15px; }
-        .edit-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; color: #555; }
-        .edit-group input, .edit-group select { width: 100%; box-sizing: border-box; }
+        .edit-group label { display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-color); font-size: 0.95rem; }
         
-        /* Edit Image List */
-        .img-edit-list {
-            display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; margin-bottom: 10px;
-        }
-        .img-edit-item {
-            position: relative; width: 70px; height: 70px; border: 1px solid #ddd; border-radius: 4px;
-        }
-        .img-edit-item img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+        .img-edit-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .img-edit-item { position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; }
+        .img-edit-item img { width: 100%; height: 100%; object-fit: cover; }
         .img-del-btn {
-            position: absolute; top: -5px; right: -5px; background: red; color: white;
-            border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            position: absolute; top: 0; right: 0; width: 24px; height: 24px;
+            background: rgba(239, 68, 68, 0.9); color: white; border: none;
+            display: flex; align-items: center; justify-content: center;
+            border-bottom-left-radius: 6px; cursor: pointer;
         }
 
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 25px; justify-content: flex-end; }
+        .modal-actions button { flex: 1; max-width: 120px; }
 
-        /* Filter & File */
-        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px; align-items: center; }
-        .file-controls { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid var(--border-color); padding-top: 20px; }
-        .file-buttons { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
-        .csv-help { font-size: 0.8rem; color: #666; margin-right: auto; }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* --- [모바일 반응형 미디어 쿼리] --- */
+        @media (max-width: 900px) {
+            /* 컨테이너 여백 축소 */
+            .container { padding: 15px; width: 100%; border-radius: 0; box-shadow: none; margin-bottom: 0; }
+            body { padding: 0; background-color: var(--card-bg); }
+
+            /* 입력 그룹: 세로로 쌓기 */
+            .input-group {
+                grid-template-columns: 1fr 1fr; /* 날짜, 타입 반반 */
+                grid-template-areas: 
+                    "date type"
+                    "price price"
+                    "name name"
+                    "explan explan"
+                    "file btn";
+            }
+            #inDate { grid-area: date; }
+            #inType { grid-area: type; }
+            #inPrice { grid-area: price; }
+            #inName { grid-area: name; }
+            #inExplan { grid-area: explan; }
+            .file-label { grid-area: file; }
+            .btn-primary { grid-area: btn; height: 100%; }
+
+            /* 잔액 섹션 세로 정렬 */
+            .balance-section { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .balance-input-area { width: 100%; align-items: stretch; }
+            .balance-input-area input { max-width: none; flex: 1; }
+            
+            /* 필터 바 세로 정렬 */
+            .filter-bar { flex-direction: column; align-items: stretch; }
+            .filter-bar input { width: 100%; }
+            
+            /* 파일 버튼들 */
+            .file-buttons { flex-direction: column; }
+            .file-buttons button, .file-buttons select { width: 100%; }
+        }
         
-        /* File Input Custom */
-        input[type="file"]::file-selector-button { display: none; }
-        .file-label { cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; }
-        .file-label:hover { transform: scale(1.1); }
+        /* 더 작은 화면 (폰) */
+        @media (max-width: 480px) {
+            h1 { font-size: 1.5rem; margin-bottom: 20px; }
+            .balance-info .amount { font-size: 2rem; }
+            
+            /* 테이블 폰트 축소 및 패딩 조절 */
+            th, td { padding: 10px; font-size: 0.85rem; }
+            .btn-outline, .btn-danger { padding: 4px 8px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>회계 관리 프로그램</h1>
+    <h1>💸 회계 관리 프로그램</h1>
 
     <div class="balance-section">
         <div class="balance-info">
-            <h2>💳 현재 카드 잔액 (최종 잔액)</h2>
+            <h2>현재 카드 잔액 (최종)</h2>
             <div class="amount" id="displayTotalBalance">0원</div>
         </div>
         <div class="balance-input-area">
-            <small style="color: rgba(255,255,255,0.9); margin-bottom: 5px; font-size: 0.85rem;">
-                ▼ 현재 통장/카드의 <strong>실제 잔액</strong>을 입력하세요
-            </small>
+            <small>▼ 실제 잔액을 입력하여 맞춤</small>
             <div class="balance-input-row">
-                <input type="number" id="inTargetBalance" placeholder="실제 잔액 입력">
-                <button class="btn-balance" onclick="adjustCurrentBalance()">잔액 맞춤</button>
+                <input type="number" id="inTargetBalance" placeholder="실제 잔액">
+                <button class="btn-balance" onclick="adjustCurrentBalance()">잔액 수정</button>
             </div>
         </div>
     </div>
@@ -232,30 +364,28 @@
                 <option value="expense" class="type-expense" selected>지출 (-)</option>
                 <option value="income" class="type-income">수입 (+)</option>
             </select>
-            <input type="number" id="inPrice" placeholder="금액 (Amount)" required>
+            <input type="number" id="inPrice" placeholder="금액 (원)" required>
             <input type="text" id="inName" placeholder="내역 이름" required>
             <input type="text" id="inExplan" placeholder="설명 (선택)">
             
-            <label for="inImage" class="file-label" title="이미지 첨부 (여러장 가능)">
-                📷 <input type="file" id="inImage" accept="image/*" multiple style="display:none">
+            <label for="inImage" class="file-label" title="이미지 첨부 (여러장)">
+                📷 <input type="file" id="inImage" accept="image/*" multiple>
             </label>
 
             <button class="btn-primary" onclick="addEntry()">추가</button>
         </div>
-        <small style="color: #666;">* 카메라 아이콘을 눌러 여러 장의 이미지를 동시에 첨부할 수 있습니다.</small>
+        <small style="padding: 0 5px;">* 날짜 선택 시 과거 내역도 자동 계산됩니다. 카메라는 다중 선택 가능.</small>
     </div>
 
     <div class="section">
         <div class="section-title">📋 내역 조회</div>
+        
         <div class="filter-bar">
-            <strong>검색:</strong>
             <input type="text" id="filterName" placeholder="이름 검색..." onkeyup="renderTable()">
-            <span style="margin: 0 5px;">|</span>
-            <strong>기간:</strong>
             <input type="date" id="filterStartDate" onchange="renderTable()">
-            <span>~</span>
+            <span style="text-align:center;">~</span>
             <input type="date" id="filterEndDate" onchange="renderTable()">
-            <button class="btn-outline" onclick="resetFilters()">🔄 필터 초기화</button>
+            <button class="btn-outline" onclick="resetFilters()">🔄 초기화</button>
         </div>
 
         <div class="table-container">
@@ -263,12 +393,12 @@
                 <thead>
                     <tr>
                         <th style="width: 12%;" onclick="sortTable('date')" id="th-date">날짜 <span class="sort-icon">▼</span></th>
-                        <th style="width: 8%;" onclick="sortTable('type')" id="th-type">구분 <span class="sort-icon">▼</span></th>
-                        <th style="width: 15%;" onclick="sortTable('name')" id="th-name">이름 <span class="sort-icon">▼</span></th>
+                        <th style="width: 8%;" onclick="sortTable('type')" id="th-type">구분</th>
+                        <th style="width: 15%;" onclick="sortTable('name')" id="th-name">이름</th>
                         <th style="width: 20%;">설명</th>
                         <th style="width: 8%; text-align:center;">사진</th>
-                        <th style="width: 12%; text-align:right;" onclick="sortTable('price')" id="th-price">금액 <span class="sort-icon">▼</span></th>
-                        <th style="width: 15%;" class="balance-col">카드 잔액</th>
+                        <th style="width: 12%; text-align:right;" onclick="sortTable('price')" id="th-price">금액</th>
+                        <th style="width: 15%;" class="balance-col">잔액</th>
                         <th style="width: 10%; text-align:center;">관리</th>
                     </tr>
                 </thead>
@@ -279,22 +409,21 @@
 
     <div class="file-controls">
         <div class="file-buttons">
-            <span class="csv-help">※ CSV 파일에 이미지 데이터도 함께 저장됩니다. (다중 이미지 포함)</span>
-            <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(this)">
-            <select id="encodingSelect" style="padding: 8px;">
+            <span class="csv-help" style="margin-right:auto; padding: 10px 0;">※ 이미지 포함 CSV 저장/불러오기 지원</span>
+            <select id="encodingSelect">
                 <option value="UTF-8">UTF-8 (기본)</option>
-                <option value="EUC-KR">EUC-KR (엑셀/한글)</option>
+                <option value="EUC-KR">EUC-KR (엑셀용)</option>
             </select>
-            <button class="btn-outline" onclick="document.getElementById('csvFileInput').click()">📂 CSV 불러오기</button>
-            <button class="btn-primary" onclick="exportCSV()">💾 CSV 저장하기</button>
+            <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(this)">
+            <button class="btn-outline" onclick="document.getElementById('csvFileInput').click()">📂 불러오기</button>
+            <button class="btn-primary" onclick="exportCSV()">💾 저장하기</button>
         </div>
     </div>
 </div>
 
 <div id="imageModal" class="modal">
     <span class="close" onclick="closeModal('imageModal')">&times;</span>
-    <div id="modalGallery" class="modal-image-container">
-        </div>
+    <div id="modalGallery" class="modal-image-container"></div>
 </div>
 
 <div id="editModal" class="modal">
@@ -326,15 +455,14 @@
             <input type="text" id="editExplan">
         </div>
         <div class="edit-group">
-            <label>이미지 관리 (추가하려면 파일 선택)</label>
-            <input type="file" id="editImageInput" accept="image/*" multiple>
-            
+            <label>이미지 관리 (추가: 파일선택)</label>
+            <input type="file" id="editImageInput" accept="image/*" multiple style="margin-bottom:10px;">
             <div id="editImageList" class="img-edit-list"></div>
         </div>
 
         <div class="modal-actions">
             <button class="btn-outline" onclick="closeModal('editModal')">취소</button>
-            <button class="btn-primary" onclick="saveEdit()">저장하기</button>
+            <button class="btn-primary" onclick="saveEdit()">저장완료</button>
         </div>
     </div>
 </div>
