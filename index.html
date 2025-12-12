@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>스마트 회계 관리</title>
     <style>
-        /* --- [기본 스타일 설정] --- */
+        /* --- [디자인 리셋 및 변수 설정] --- */
         :root {
             --primary: #4f46e5;
             --primary-dark: #4338ca;
@@ -24,7 +24,7 @@
         * { box-sizing: border-box; }
 
         body {
-            font-family: 'Pretendard', -apple-system, sans-serif;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0;
@@ -47,9 +47,10 @@
             font-size: 1.5rem;
             margin-bottom: 25px;
             color: var(--text-main);
+            font-weight: 800;
         }
 
-        /* --- [1. 잔액 카드 (반응형)] --- */
+        /* --- [1. 잔액 카드] --- */
         .balance-card {
             background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
             color: white;
@@ -77,7 +78,7 @@
         }
         .balance-actions input {
             width: 100px; padding: 8px; border: none; border-radius: 4px;
-            text-align: right; font-weight: bold;
+            text-align: right; font-weight: bold; font-size: 1rem;
         }
         .btn-white {
             background: white; color: var(--primary); border: none;
@@ -91,7 +92,7 @@
             padding-left: 10px;
         }
 
-        /* --- [3. 입력 폼 (그리드 레이아웃)] --- */
+        /* --- [3. 입력 폼] --- */
         .input-grid {
             display: grid;
             gap: 10px;
@@ -148,12 +149,13 @@
         .filter-bar input { width: auto; flex: 1; min-width: 120px; }
         .btn-outline {
             background: white; border: 1px solid var(--border); color: var(--text-main);
-            padding: 0 15px; border-radius: 6px; cursor: pointer;
+            padding: 0 15px; border-radius: 6px; cursor: pointer; height: 42px;
         }
 
         .table-wrap {
             overflow-x: auto;
             border: 1px solid var(--border); border-radius: 8px;
+            -webkit-overflow-scrolling: touch; /* 모바일 스크롤 부드럽게 */
         }
         table {
             width: 100%; border-collapse: collapse; min-width: 800px;
@@ -168,8 +170,8 @@
         .expense-text { color: var(--red); }
         
         .img-btn {
-            font-size: 0.75rem; padding: 2px 6px; border: 1px solid var(--border);
-            border-radius: 4px; background: white; cursor: pointer;
+            font-size: 0.75rem; padding: 4px 8px; border: 1px solid var(--border);
+            border-radius: 4px; background: white; cursor: pointer; color: #555;
         }
 
         /* --- [5. 하단 파일 컨트롤] --- */
@@ -177,9 +179,8 @@
             margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border);
             display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
         }
-        .file-controls select, .file-controls button { width: auto; }
+        .file-controls select, .file-controls button { width: auto; height: 45px; }
         
-        /* 버튼 색상 커스텀 */
         .btn-green { background: var(--green); color: white; border:none; border-radius: 6px; padding: 0 15px; font-weight: bold; cursor: pointer; }
         .btn-green:hover { background: #059669; }
         .btn-red-outline { background: white; color: var(--red); border: 1px solid var(--red); border-radius: 6px; padding: 0 15px; font-weight: bold; cursor: pointer; }
@@ -213,12 +214,16 @@
             background: red; color: white; border-radius: 50%; border: none;
             cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;
         }
+
+        /* 저장 모달 */
+        .save-options { display: flex; gap: 10px; margin-top: 20px; }
+        .save-options button { flex: 1; height: 50px; font-size: 1rem; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📒 회계 관리 프로그램</h1>
+    <h1>📒 스마트 회계 관리</h1>
 
     <div class="balance-card">
         <div class="balance-info">
@@ -285,22 +290,23 @@
             <option value="UTF-8">UTF-8 (기본)</option>
             <option value="EUC-KR">EUC-KR (엑셀)</option>
         </select>
-        <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(this)">
+        
+        <input type="file" id="csvFileInput" accept=".csv, text/csv, application/vnd.ms-excel, text/plain" style="display: none;" onchange="handleFileSelect(this)">
         
         <button class="btn-red-outline" onclick="triggerImport('overwrite')">📂 덮어쓰기</button>
         <button class="btn-green" onclick="triggerImport('append')">➕ CSV 추가</button>
-        <button class="btn-primary" onclick="exportCSV()">💾 저장하기</button>
+        <button class="btn-primary" onclick="openSaveModal()">💾 저장하기</button>
     </div>
 </div>
 
 <div id="imageModal" class="modal" onclick="if(event.target==this) this.style.display='none'">
-    <span class="close" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
+    <span class="close" style="position:fixed; color:white; top:20px; right:20px;" onclick="document.getElementById('imageModal').style.display='none'">&times;</span>
     <div id="modalGallery" class="modal-img-view"></div>
 </div>
 
 <div id="editModal" class="modal">
     <div class="modal-content">
-        <span class="close" style="color:#333; top:10px; right:15px;" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
+        <span class="close" style="top:10px; right:15px; color:#333;" onclick="document.getElementById('editModal').style.display='none'">&times;</span>
         <h2 style="margin-top:0;">내역 수정</h2>
         <input type="hidden" id="editId">
         
@@ -340,13 +346,31 @@
     </div>
 </div>
 
+<div id="saveModal" class="modal">
+    <div class="modal-content" style="text-align:center;">
+        <span class="close" style="top:10px; right:15px; color:#333;" onclick="document.getElementById('saveModal').style.display='none'">&times;</span>
+        <h2 style="margin-top:0;">저장 방식 선택</h2>
+        <p style="color:#666;">파일을 어떻게 저장하시겠습니까?</p>
+        
+        <div class="save-options">
+            <button class="btn-primary" onclick="processSave('overwrite')">
+                💾 저장<br><small style="font-weight:normal; opacity:0.8">(불러온 파일명)</small>
+            </button>
+            <button class="btn-outline" onclick="processSave('saveas')">
+                📝 다른 이름으로<br><small style="font-weight:normal; color:#888">(새 파일명 입력)</small>
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     // --- 데이터 변수 ---
     let accountingData = [];
     let initialBalance = 0;
     let currentSort = { column: 'date', order: 'asc' };
     let currentEditImages = [];
-    let importMode = 'overwrite'; // 'overwrite' | 'append'
+    let importMode = 'overwrite'; 
+    let importedFileName = "data.csv"; 
 
     // --- 초기화 ---
     window.onload = function() {
@@ -424,7 +448,6 @@
         saveToLocalStorage();
         renderTable();
         
-        // 초기화
         document.getElementById('inPrice').value = '';
         document.getElementById('inName').value = '';
         document.getElementById('inExplan').value = '';
@@ -482,7 +505,7 @@
                 valA = a.price || 0; valB = b.price || 0;
             } else if (currentSort.column === 'name') {
                 valA = (a.name || "").toLowerCase(); valB = (b.name || "").toLowerCase();
-            } else { // type
+            } else { 
                 valA = a.type || ""; valB = b.type || "";
             }
             
@@ -497,7 +520,6 @@
             const dateStr = `${item.year}-${String(item.month).padStart(2,'0')}-${String(item.day).padStart(2,'0')}`;
             const isInc = item.type === 'income';
             
-            // 이미지 버튼
             let imgBtn = '-';
             let imgCount = 0;
             if (item.images && Array.isArray(item.images)) imgCount = item.images.length;
@@ -663,7 +685,7 @@
         renderTable();
     }
 
-    // --- CSV 파싱 (강력한 버전) ---
+    // --- CSV 파싱 (Robust) ---
     function parseCSVRow(row) {
         let res = [];
         let cur = '';
@@ -681,51 +703,51 @@
         return res;
     }
 
-    // --- [CSV 불러오기/추가하기 로직 분리] ---
+    // --- [모바일 파일 선택을 위한 함수] ---
     function triggerImport(mode) {
-        importMode = mode; // 전역 변수 설정
+        importMode = mode;
+        // [중요] 모바일에서 onchange가 발생하도록 value 초기화
+        document.getElementById('csvFileInput').value = ''; 
         document.getElementById('csvFileInput').click();
     }
 
     function handleFileSelect(input) {
         const file = input.files[0];
         if(!file) return;
-        
+        importedFileName = file.name;
+
         const reader = new FileReader();
         reader.onload = e => {
             const rows = e.target.result.split(/\r?\n/);
             let cnt = 0;
 
-            // [핵심] 덮어쓰기 모드면 데이터 초기화
             if (importMode === 'overwrite') {
                 accountingData = [];
                 initialBalance = 0; 
             }
 
-            // 헤더 건너뛰고 파싱
             for(let i=1; i<rows.length; i++) {
                 if(!rows[i].trim()) continue;
                 const cols = parseCSVRow(rows[i]);
                 if(cols.length < 6) continue;
 
-                // 매핑 로직
                 let type='expense', price=0, name='', explan='', y=0, m=0, d=0, imgs=[];
                 
-                if(cols.length >= 9) { // 최신
+                if(cols.length >= 9) { 
                     type = cols[0]; price = parseInt(cols[1]); name = cols[2]; explan = cols[3];
                     y = parseInt(cols[4]); m = parseInt(cols[5]); d = parseInt(cols[6]);
                     if(cols[8]) imgs = cols[8].split('|||').filter(s=>s.length>20);
-                } else if(cols.length >= 8) { // 중간
+                } else if(cols.length >= 8) { 
                     type = cols[0]; price = parseInt(cols[1]); name = cols[2]; explan = cols[3];
                     y = parseInt(cols[4]); m = parseInt(cols[5]); d = parseInt(cols[6]);
-                } else { // 구버전
+                } else { 
                     price = parseInt(cols[0]); name = cols[1]; explan = cols[2];
                     y = parseInt(cols[3]); m = parseInt(cols[4]); d = parseInt(cols[5]);
                 }
 
                 if(!isNaN(price) && !isNaN(y)) {
                     accountingData.push({
-                        id: Date.now() + i, // 고유 ID 생성 (추가 시 겹치지 않게)
+                        id: Date.now() + i, 
                         type, price, name, explan, year:y, month:m, day:d, images:imgs
                     });
                     cnt++;
@@ -733,16 +755,28 @@
             }
             saveToLocalStorage();
             renderTable();
-            
             const msg = importMode === 'overwrite' ? '덮어쓰기 완료!' : '추가하기 완료!';
             alert(`${cnt}건 ${msg}\n잔액은 현재 설정된 기준에 맞춰 재계산됩니다.`);
-            input.value = '';
         };
         reader.readAsText(file, document.getElementById('encodingSelect').value);
     }
 
-    function exportCSV() {
-        // 날짜순 정렬
+    // --- 저장 버튼 모달 ---
+    function openSaveModal() {
+        document.getElementById('saveModal').style.display = 'block';
+    }
+
+    function processSave(mode) {
+        document.getElementById('saveModal').style.display = 'none';
+        if (mode === 'overwrite') {
+            exportCSV(importedFileName);
+        } else {
+            let newName = prompt("새로운 파일명을 입력하세요 (확장자 제외)", "data_new");
+            if (newName) exportCSV(newName + ".csv");
+        }
+    }
+
+    function exportCSV(filename = "data.csv") {
         let sorted = [...accountingData].sort((a, b) => {
             const da = (a.year||0)*10000 + (a.month||0)*100 + (a.day||0);
             const db = (b.year||0)*10000 + (b.month||0)*100 + (b.day||0);
@@ -757,7 +791,6 @@
             else bal -= (row.price||0);
 
             const esc = s => `"${String(s || '').replace(/"/g, '""')}"`;
-            
             let imgStr = '';
             if(row.images && row.images.length) imgStr = row.images.join('|||');
             else if(row.image) imgStr = row.image;
@@ -776,7 +809,7 @@
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = "data.csv";
+        link.download = filename;
         link.click();
     }
 
